@@ -95,7 +95,7 @@ func lsdups(cmd *cobra.Command, args []string) {
 	elapsed := time.Since(start) // Calculate the time elapsed since the start time
 	fmt.Printf("Program execution time: %s\n", elapsed)
 
-	listAllHashes(fileMap)
+	// listAllHashes(fileMap)
 
 }
 
@@ -103,10 +103,10 @@ func write_hashMap(fileMap map[string]files, files_done chan files, collection_d
 
 	for i := range files_done {
 
-		fmt.Println("file hash is ", i.hash)
+		// fmt.Println("file hash is ", i.hash)
 		val, ok := fileMap[i.hash]
 		if ok {
-			fmt.Println("repeat found ")
+			// fmt.Println("repeat found ")
 			val.Path = append(val.Path, i.Path...)
 			val.Count++
 			fileMap[i.hash] = val
@@ -119,20 +119,20 @@ func write_hashMap(fileMap map[string]files, files_done chan files, collection_d
 
 	}
 
-	fmt.Println("collection done")
+	// fmt.Println("collection done")
 	collection_done <- true
 
 }
 
 func worker_fileHash(workerID int, work chan string, done chan files, worker_completed chan bool) {
 	for i := range work {
-		fmt.Println(i, " done by ", workerID)
+		// fmt.Println(i, " done by ", workerID)
 		fileHash := fileHash(i)
 		file := files{Path: []string{i}, Count: 1, hash: fileHash}
 		done <- file
 
 	}
-	fmt.Println("\n\n", workerID, " worker Completed")
+	// fmt.Println("\n\n", workerID, " worker Completed")
 	worker_completed <- true
 }
 

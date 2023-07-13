@@ -66,6 +66,12 @@ file hash is abcdef1234567890: {Path: [file1.txt file2.txt], Count: 2}
 file hash is 0987654321fedcba: {Path: [file3.txt], Count: 1}
 ```
 
+## Improvements
+
+1. Implement optional recursive search to include subdirectories in the scan.
+2. Optimize the code for better performance by introducing multiple workers for parallel file processing.
+
+
 ## Contributing
 
 Contributions are welcome! If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request. Make sure to follow the project's code of conduct.
@@ -73,4 +79,4 @@ Contributions are welcome! If you encounter any issues or have suggestions for i
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-```
+

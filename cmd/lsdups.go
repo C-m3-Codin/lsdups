@@ -80,7 +80,7 @@ func getFiles(fileMap map[string]files) filepath.WalkFunc {
 		fmt.Printf("dir: %v: name: %s\n", info.IsDir(), path)
 		if !info.IsDir() {
 			fileHash := fileHash(path)
-			fmt.Println("file hash is ", fileHash)
+			// fmt.Println("file hash is ", fileHash)
 			val, ok := fileMap[fileHash]
 			if ok {
 				val.Path = append(val.Path, path)

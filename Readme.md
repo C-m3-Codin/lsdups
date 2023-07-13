@@ -69,7 +69,7 @@ file hash is 0987654321fedcba: {Path: [file3.txt], Count: 1}
 ## Improvements
 
 1. Implement optional recursive search to include subdirectories in the scan.
-2. Optimize the code for better performance by introducing multiple workers for parallel file processing.
+2. Optimize the code for better performance by introducing multiple workers for parallel file processing [done in branch threadIt].
 
 
 ## Contributing

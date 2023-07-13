@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -46,32 +47,96 @@ func init() {
 type files struct {
 	Path  []string
 	Count int
+	hash  string
 }
 
 func lsdups(cmd *cobra.Command, args []string) {
+	fmt.Println("lsdups called")
 	start := time.Now() // Record the current time before the program logic
 
 	// Place your program logic here
 	// ...
+	fileMap := make(map[string]files)
+	worker_count := runtime.GOMAXPROCS(0)
+	// worker_count := 2
 
-	fmt.Println("lsdups called")
+	work := make(chan string)
+	files_done := make(chan files)
+	worker_completed := make(chan bool)
+	collection_done := make(chan bool)
+
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileMap := make(map[string]files)
-	err = filepath.Walk(dir, getFiles(fileMap))
-	fmt.Println("Directory is ", dir)
+
+	for i := 0; i < worker_count; i++ {
+
+		go worker_fileHash(i, work, files_done, worker_completed)
+	}
+
+	go write_hashMap(fileMap, files_done, collection_done)
+
+	err = filepath.Walk(dir, getFiles(fileMap, work))
+
+	// fmt.Println("Directory is ", dir)
 	if err != nil {
 		log.Fatal(err)
 	}
+	close(work)
+	for i := 0; i < worker_count; i++ {
+
+		<-worker_completed
+	}
+	close(files_done)
+
+	<-collection_done
+
 	elapsed := time.Since(start) // Calculate the time elapsed since the start time
 	fmt.Printf("Program execution time: %s\n", elapsed)
+
 	listAllHashes(fileMap)
 
 }
 
-func getFiles(fileMap map[string]files) filepath.WalkFunc {
+func write_hashMap(fileMap map[string]files, files_done chan files, collection_done chan bool) {
+
+	for i := range files_done {
+
+		fmt.Println("file hash is ", i.hash)
+		val, ok := fileMap[i.hash]
+		if ok {
+			fmt.Println("repeat found ")
+			val.Path = append(val.Path, i.Path...)
+			val.Count++
+			fileMap[i.hash] = val
+
+		} else {
+			fileMap[i.hash] = i
+
+		}
+		// newFile := files{Path: []string{path}, Count: 1}
+
+	}
+
+	fmt.Println("collection done")
+	collection_done <- true
+
+}
+
+func worker_fileHash(workerID int, work chan string, done chan files, worker_completed chan bool) {
+	for i := range work {
+		fmt.Println(i, " done by ", workerID)
+		fileHash := fileHash(i)
+		file := files{Path: []string{i}, Count: 1, hash: fileHash}
+		done <- file
+
+	}
+	fmt.Println("\n\n", workerID, " worker Completed")
+	worker_completed <- true
+}
+
+func getFiles(fileMap map[string]files, work chan string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Println(err)
@@ -79,17 +144,9 @@ func getFiles(fileMap map[string]files) filepath.WalkFunc {
 		}
 		fmt.Printf("dir: %v: name: %s\n", info.IsDir(), path)
 		if !info.IsDir() {
-			fileHash := fileHash(path)
-			fmt.Println("file hash is ", fileHash)
-			val, ok := fileMap[fileHash]
-			if ok {
-				val.Path = append(val.Path, path)
-				val.Count++
-				fileMap[fileHash] = val
-				return nil
-			}
-			newFile := files{Path: []string{path}, Count: 1}
-			fileMap[fileHash] = newFile
+			// fileHash := fileHash(path)
+			work <- path
+
 		}
 		return nil
 	}

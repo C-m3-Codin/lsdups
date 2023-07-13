@@ -52,7 +52,7 @@ The tool scans a directory and lists duplicate files within it.
 
 # # List duplicate files in a specific directory
 # ./clean /path/to/directory
-# ```
+```
 
 ## Output
 
@@ -60,7 +60,7 @@ The tool will provide a list of duplicate files found within the specified direc
 
 For example:
 
-```
+```shell
 Directory is /path/to/directory
 file hash is abcdef1234567890: {Path: [file1.txt file2.txt], Count: 2}
 file hash is 0987654321fedcba: {Path: [file3.txt], Count: 1}

@@ -95,7 +95,7 @@ func lsdups(cmd *cobra.Command, args []string) {
 	elapsed := time.Since(start) // Calculate the time elapsed since the start time
 	fmt.Printf("Program execution time: %s\n", elapsed)
 
-	// listAllHashes(fileMap)
+	listAllHashes(fileMap)
 
 }
 
@@ -166,6 +166,7 @@ func fileHash(filepath string) (hash string) {
 }
 
 func listAllHashes(filemap map[string]files) {
+	fmt.Println("Possible Duplicates ")
 	for k, v := range filemap {
 		// fmt.Println(k, v)
 		if v.Count > 1 {

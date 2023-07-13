@@ -109,6 +109,7 @@ func fileHash(filepath string) (hash string) {
 }
 
 func listAllHashes(filemap map[string]files) {
+	fmt.Println("List of possible duplicates ")
 	for k, v := range filemap {
 		// fmt.Println(k, v)
 		if v.Count > 1 {

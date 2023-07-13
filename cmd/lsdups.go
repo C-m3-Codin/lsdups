@@ -5,11 +5,13 @@ package cmd
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -41,51 +43,76 @@ func init() {
 	// lsdupsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+type files struct {
+	Path  []string
+	Count int
+}
+
 func lsdups(cmd *cobra.Command, args []string) {
+	start := time.Now() // Record the current time before the program logic
+
+	// Place your program logic here
+	// ...
+
 	fmt.Println("lsdups called")
-
 	dir, err := os.Getwd()
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	err = filepath.Walk(dir, getFile)
-
+	fileMap := make(map[string]files)
+	err = filepath.Walk(dir, getFiles(fileMap))
 	fmt.Println("Directory is ", dir)
 	if err != nil {
 		log.Fatal(err)
 	}
+	elapsed := time.Since(start) // Calculate the time elapsed since the start time
+	fmt.Printf("Program execution time: %s\n", elapsed)
+	listAllHashes(fileMap)
 
 }
 
-func getFile(path string, info os.FileInfo, err error) error {
-	if err != nil {
-		fmt.Println(err)
-		return err
+func getFiles(fileMap map[string]files) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		fmt.Printf("dir: %v: name: %s\n", info.IsDir(), path)
+		if !info.IsDir() {
+			fileHash := fileHash(path)
+			fmt.Println("file hash is ", fileHash)
+			val, ok := fileMap[fileHash]
+			if ok {
+				val.Path = append(val.Path, path)
+				val.Count++
+				fileMap[fileHash] = val
+				return nil
+			}
+			newFile := files{Path: []string{path}, Count: 1}
+			fileMap[fileHash] = newFile
+		}
+		return nil
 	}
-	fmt.Printf("dir: %v: name: %s\n", info.IsDir(), path)
-
-	if !info.IsDir() {
-
-		fileHash(path)
-	}
-	return nil
 }
 
-func fileHash(filepath string) {
-	fmt.Println("In file Hash")
+func fileHash(filepath string) (hash string) {
 	f, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
-
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
 		log.Fatal(err)
 	}
+	return hex.EncodeToString(h.Sum(nil))
+}
 
-	fmt.Printf("%x", h.Sum(nil))
-
+func listAllHashes(filemap map[string]files) {
+	for k, v := range filemap {
+		// fmt.Println(k, v)
+		if v.Count > 1 {
+			fmt.Println(k, v)
+		}
+	}
 }

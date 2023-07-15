@@ -31,6 +31,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
+	lsdupsCmd.Flags().String("path", "", "Param description")
 	rootCmd.AddCommand(lsdupsCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -51,23 +52,33 @@ type files struct {
 }
 
 func lsdups(cmd *cobra.Command, args []string) {
-	fmt.Println("lsdups called")
+
+	externalPath := cmd.Flag("path").Value.String()
+
+	fmt.Println("lsdups called", externalPath)
 	start := time.Now() // Record the current time before the program logic
 
-	// Place your program logic here
-	// ...
 	fileMap := make(map[string]files)
 	worker_count := runtime.GOMAXPROCS(0)
 	// worker_count := 2
 
+	var dir string
+	var err error
 	work := make(chan string)
 	files_done := make(chan files)
 	worker_completed := make(chan bool)
 	collection_done := make(chan bool)
 
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
+	if len(externalPath) == 0 {
+		fmt.Println("Didnt get a value external for path")
+		dir, err = os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	} else {
+		dir = externalPath
+		fmt.Println("Got a value for external path", externalPath)
 	}
 
 	for i := 0; i < worker_count; i++ {
